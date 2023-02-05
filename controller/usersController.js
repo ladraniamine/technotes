@@ -6,8 +6,8 @@ const bcrypt = require('bcrypt')
 //get all users
 const getAllUsers = asyncHandler(async (req,res)=>{
   const users = await User.find().select('-password').lean()
-  if(!users){
-    return res.status(400).json({message: 'user not found'})
+  if(!users?.length){
+    return res.status(400).json({message: 'users not found'})
   }
   res.json(users)
 })
@@ -21,7 +21,7 @@ const createNewUser = asyncHandler(async (req,res)=>{
     return res.status(400).json({message: 'all fields are required'})
   }
   //check duplicate 
-  const duplicate = User.findOne({username}).lean().exec()
+  const duplicate = await User.findOne({username}).lean().exec()
   if(duplicate){
     return res.status(409).json({message:'this user is used befor'})
   }
@@ -34,7 +34,7 @@ const createNewUser = asyncHandler(async (req,res)=>{
   const user = await User.create(userObject)
   if(user){
     //user created successfuly
-    res.status(201).json({message: `new username ${user} is created`})   
+    res.status(201).json({message: `new username ${user.username} is created`})   
   }else{
     return res.status(400).json({message: 'Invalide user data recieved'})
   }
@@ -49,6 +49,7 @@ const updateUser = asyncHandler(async (req,res)=>{
   }
 
   const user = await User.findById(id).exec()
+  console.log(user)
   if(!user){
     return res.status(400).json({message: 'user not found !'})
   }
