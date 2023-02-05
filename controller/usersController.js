@@ -72,11 +72,30 @@ const updateUser = asyncHandler(async (req,res)=>{
   }
 
   const updateUser = await user.save()
+  res.json({message: `${updateUser.username} updated :)`})
 })
 
 //delete user
 const deleteUsers = asyncHandler(async (req,res)=>{
+      const {id} = req.body
+      if(!id){
+        return res.status(400).json({message: 'user id required'})
+      }
 
+      // Does the user still have assigned notes?
+      const notes = await Note.findOne({user: id}).lean().exec()
+        if(notes?.length){
+          return res.status(400).json({message: 'user has assigned notes !'})
+        }
+
+        const user = await User.findById(id).exec()
+        if(!user){
+          return res.status(400).json({message: 'user not found !'})
+        }
+
+        const result = await user.deleteOne()
+        const reply = `username ${result.username} with the ID ${result.id} has deleted`
+        res.json({message: reply})
 })
 
 module.exports = {
